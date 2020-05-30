@@ -13,19 +13,45 @@ def create_app(test_config=None):
   app = Flask(__name__)
   setup_db(app)
   
+  def paginate_questions(request, selection):
+    page = request.args.get('page', 1, type=int)
+    start = (page - 1) * QUESTIONS_PER_PAGE
+    end = start + QUESTIONS_PER_PAGE
+    return selection[start:end]
+
+  def get_all_categories():
+    categories = {}
+    for category in Category.query.all():
+      categories[str(category.id)] = category.type
+    return categories
+  
   '''
-  @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
+  @TODO==: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
   '''
+  CORS(app, resources={r'/*': {'origins': '*'}})
 
   '''
-  @TODO: Use the after_request decorator to set Access-Control-Allow
+  @TODO==: Use the after_request decorator to set Access-Control-Allow
   '''
+  @app.after_request
+  def after_request(response):
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authentication')
+    response.headers.add('Access-Control-Allow-Methods', 'GET, POST, DELETE, PATCH, OPTIONS')
+    return response
 
   '''
-  @TODO: 
+  @TODO==: 
   Create an endpoint to handle GET requests 
   for all available categories.
   '''
+  @app.route('/categories', methods=['GET'])
+  def retrieve_all_categories():
+    categories = get_all_categories()
+    return jsonify({
+      'success': True,
+      'categories': categories,
+      'total_categories': len(categories)
+    })
 
 
   '''
@@ -40,6 +66,22 @@ def create_app(test_config=None):
   ten questions per page and pagination at the bottom of the screen for three pages.
   Clicking on the page numbers should update the questions. 
   '''
+  @app.route('/questions', methods=['GET'])
+  def retrieve_all_questions():
+    questions = Question.query.all()
+    selection = [question.format() for question in questions]
+    current_questions = paginate_questions(request, selection)
+    
+    if not current_questions:
+      abort(404)
+
+    return jsonify({
+      'success': True,
+      'questions': current_questions,
+      'total_questions': len(selection),
+      'categories': get_all_categories(),
+      'current_category': None
+    })
 
   '''
   @TODO: 
@@ -98,6 +140,13 @@ def create_app(test_config=None):
   Create error handlers for all expected errors 
   including 404 and 422. 
   '''
+  @app.errorhandler(404)
+  def not_found(error):
+    return jsonify({
+      'success': False,
+      'error': 404,
+      'message': 'Resource Not Found'
+    }), 404
   
   return app
 
