@@ -1,6 +1,7 @@
 import os
-from sqlalchemy import Column, String, Integer, create_engine
+from sqlalchemy import Column, String, Integer, create_engine, ForeignKey
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 import json
 
 database_name = "trivia"
@@ -9,15 +10,30 @@ database_path = "postgres://{}:{}@{}/{}".format('yahia', 'password', 'localhost:
 db = SQLAlchemy()
 
 '''
+Rollback if transaction not successful
+'''
+def rollback():
+  db.session.rollback()
+
+'''
+Close the connection to make it available for reusing
+'''
+def close_connection():
+  db.session.close()
+
+'''
 setup_db(app)
     binds a flask application and a SQLAlchemy service
 '''
-def setup_db(app, database_path=database_path):
+def setup_db(app, database_path=database_path, migrate=False):
     app.config["SQLALCHEMY_DATABASE_URI"] = database_path
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     db.app = app
     db.init_app(app)
-    db.create_all()
+    if migrate:
+      Migrate(app=app, db=db)
+    else:
+      db.create_all()
 
 '''
 Question
@@ -29,7 +45,7 @@ class Question(db.Model):
   id = Column(Integer, primary_key=True)
   question = Column(String)
   answer = Column(String)
-  category = Column(String)
+  category = Column(Integer, ForeignKey('categories.id'))
   difficulty = Column(Integer)
 
   def __init__(self, question, answer, category, difficulty):
