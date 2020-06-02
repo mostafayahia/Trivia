@@ -334,7 +334,7 @@ types of errors:
 }
 ```
 
-#### /GET /categories/{category_id}/questions
+#### GET /categories/{category_id}/questions
 - ##### General:
   - Return a list of questions objects for a certain category, success value, total number of questions, and current category
 - `curl 'http://localhost:5000/categories/6/questions'`
@@ -369,7 +369,7 @@ types of errors:
 }
 ```
 
-#### /POST /quizzes
+#### POST /quizzes
 - ##### General:
   - request body should contain `previous_questions` represents array of questions' ids & `quiz_category`
   - Return a random question for the quiz not in the previous questions given in the request body, total number of questions, success value, and the current category
