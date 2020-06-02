@@ -126,8 +126,11 @@ def create_app(test_config=None):
   of the questions list in the "List" tab.  
   '''
   @app.route('/questions', methods=['POST'])
-  def create_question():
+  def create_or_search_question():
     body = request.get_json()
+
+    if not body:
+      abort(400)
     
     question = body.get('question', None)
     answer = body.get('answer', None)
