@@ -10,6 +10,7 @@ To run the application, you can run the following commands:
 ```
 export FLASK_APP=flaskr
 export FLASK_ENV=development
+export CONFIG=config.py
 flask run
 ```
 The default url is `http://localhost:5000/`
